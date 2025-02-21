@@ -17,17 +17,27 @@ export class PlayerController extends Component {
     @property(Animation)
     public bodyAnim: Animation = null;
 
-
+    // 六、計算步數=方塊索引
+    private _curTotalStep = 0;
 
     start() {
         // 監測鼠標事件input.on(eventType, thisObject, listener);
-        input.on(Input.EventType.MOUSE_DOWN, this.onMouseDown, this);
+        // input.on(Input.EventType.MOUSE_DOWN, this.onMouseDown, this);
+
         // console.log()
         // console.log(this);
         // console.log(this.bodyAnim.node)
         // console.log(this.bodyAnim.clips)
     }
-
+    
+    // 五、給GameManerger調用函數
+    public setIsCanControll(value:boolean){
+        if(value){
+            input.on(Input.EventType.MOUSE_DOWN, this.onMouseDown, this);
+        }else{            
+            input.off(Input.EventType.MOUSE_DOWN, this.onMouseDown, this);
+        }
+    }
 
     onMouseDown(event: EventMouse) {
         // getButton()===0左鍵 1滾輪 2右鍵
@@ -81,6 +91,9 @@ export class PlayerController extends Component {
         // 4-1 animName 取代判斷
         this.bodyAnim.play(animName);
 
+        // 6-1
+        this._curTotalStep+=step;
+
     }
 
     // 設定動畫移動的速度:避免動畫楨數與方塊跳躍結束時間不同
@@ -91,6 +104,9 @@ export class PlayerController extends Component {
                 this._startJump = false;
                 // 2-3.更新方塊位置
                 this.node.setPosition(this._targetPos);
+                // 6-2傳遞總步數
+                // emit("事件名稱", 傳遞參數)
+                this.node.emit("JumpEnd", this._curTotalStep);
             } else {
                 const curPos = this.node.position;
                 this.node.setPosition(curPos.x + this._jumpSpeed * dt, curPos.y, curPos.z)
@@ -102,6 +118,11 @@ export class PlayerController extends Component {
     protected onDestroy(): void {
         // input.off(eventType, thisObject, listener);
         input.off(Input.EventType.MOUSE_DOWN, this.onMouseDown, this);
+    }
+
+    public reset(){
+        this.node.setPosition(0, 0, 0);
+        this._curTotalStep = 0;
     }
 }
 
